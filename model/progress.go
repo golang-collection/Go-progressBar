@@ -1,6 +1,10 @@
 package model
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+	"strconv"
+)
 
 /**
 * @Author: super
@@ -8,44 +12,51 @@ import "fmt"
 * @Description:
 **/
 
-type Bar struct {
-	percent int64  //百分比
-	cur     int64  //当前进度位置
-	total   int64  //总进度
-	rate    string //进度条
-	graph   string //显示的图案
+type ProgressBar struct {
+	percent       int    //百分比
+	cur           int    //当前进度位置
+	total         int    //总进度
+	totalLen      int    //total的长度
+	count         int    //图案显示的个数
+	rate          string //进度条
+	showGraphRate int    //控制多少个字节显示一个图案
+	graph         string //显示的图案
 }
 
-func (bar *Bar) NewOption(start, total int64){
+func (bar *ProgressBar) NewOption(start, total, count int) {
+	bar.count = count
 	bar.cur = start
 	bar.total = total
-	if bar.graph == ""{
+	s := strconv.Itoa(total)
+	bar.totalLen = len(s)
+	if bar.graph == "" {
 		bar.graph = "#"
 	}
-	bar.percent = bar.getPercent()
-	for i := 0; i<int(bar.percent); i += 2{
-		bar.rate += bar.graph
-	}
+	bar.showGraphRate = int(math.Ceil(float64(bar.total) / float64(bar.count)))
+	bar.percent = 0
 }
-func (bar *Bar) NewOptionWithGraph(start , total int64, graph string){
+
+func (bar *ProgressBar) NewOptionWithGraph(start, total, count int, graph string) {
 	bar.graph = graph
-	bar.NewOption(start, total)
+	bar.NewOption(start, total, count)
 }
 
-func (bar *Bar)Play(cur int64){
+func (bar *ProgressBar) Play(cur int) {
 	bar.cur = cur
-	last := bar.percent
 	bar.percent = bar.getPercent()
-	if bar.percent != last && bar.percent % 2 == 0{
+
+
+	if cur%(bar.showGraphRate) == 0 && cur <= bar.total && cur != 0 {
 		bar.rate += bar.graph
 	}
-	fmt.Printf("\r[%-50s]%3d%%  %8d/%d", bar.rate, bar.percent, bar.cur, bar.total)
+
+	fmt.Printf("\r[%-"+strconv.Itoa(bar.count)+"s]%3d%% %" + strconv.Itoa(bar.totalLen) +"d/%d", bar.rate, bar.percent, bar.cur, bar.total)
 }
 
-func (bar *Bar)Finish(){
+func (bar *ProgressBar) Finish() {
 	fmt.Println()
 }
 
-func (bar *Bar) getPercent() int64 {
-	return int64(float32(bar.cur) / float32(bar.total) * 100)
+func (bar *ProgressBar) getPercent() int {
+	return int(float32(bar.cur) / float32(bar.total) * 100)
 }

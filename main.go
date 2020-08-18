@@ -12,11 +12,11 @@ import (
 **/
 
 func main() {
-	var bar model.Bar
-	bar.NewOption(0,100)
-	for i := 0; i<=100; i++{
-		time.Sleep(time.Millisecond * 100)
-		bar.Play(int64(i))
+	var bar model.ProgressBar
+	bar.NewOption(0,1000, 50)
+	for i := 0; i<=1000; i++{
+		time.Sleep(time.Millisecond * 10)
+		bar.Play(i)
 	}
 	bar.Finish()
 }
